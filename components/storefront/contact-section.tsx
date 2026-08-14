@@ -51,30 +51,32 @@ export function ContactSection({ settings }: { settings: ShopSettings }) {
 
           <div className="mt-6 flex flex-col gap-3">
             {waNumber && (
-              <Button asChild size="lg" className="w-full justify-start gap-3 sm:w-auto">
-                <a
-                  href={`https://wa.me/${waNumber}?text=${encodeURIComponent(
-                    `Hi ${settings.shopName}, I have a question.`,
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <MessageCircle className="h-5 w-5" />
-                  Chat on WhatsApp
-                </a>
+              <Button
+                render={
+                  <a
+                    href={`https://wa.me/${waNumber}?text=${encodeURIComponent(
+                      `Hi ${settings.shopName}, I have a question.`,
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                }
+                size="lg"
+                className="w-full justify-start gap-3 sm:w-auto"
+              >
+                <MessageCircle className="h-5 w-5" />
+                Chat on WhatsApp
               </Button>
             )}
             {settings.phone && (
               <Button
-                asChild
+                render={<a href={`tel:${settings.phone.replace(/\s/g, "")}`} />}
                 size="lg"
                 variant="outline"
                 className="w-full justify-start gap-3 bg-transparent sm:w-auto"
               >
-                <a href={`tel:${settings.phone.replace(/\s/g, "")}`}>
-                  <Phone className="h-5 w-5" />
-                  {settings.phone}
-                </a>
+                <Phone className="h-5 w-5" />
+                {settings.phone}
               </Button>
             )}
           </div>

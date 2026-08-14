@@ -1,47 +1,39 @@
-export default function Page() {
+import { getSettings, getCategories, getProducts } from "@/lib/queries"
+import { CartProvider } from "@/components/storefront/cart-provider"
+import { SiteHeader } from "@/components/storefront/site-header"
+import { Hero } from "@/components/storefront/hero"
+import { Announcement } from "@/components/storefront/announcement"
+import { Catalog } from "@/components/storefront/catalog"
+import { PaymentSection } from "@/components/storefront/payment-section"
+import { ContactSection } from "@/components/storefront/contact-section"
+import { SiteFooter } from "@/components/storefront/site-footer"
+import { FunPanel } from "@/components/storefront/fun-panel"
+import { CartSheet } from "@/components/storefront/cart-sheet"
+
+export const dynamic = "force-dynamic"
+
+export default async function HomePage() {
+  const [settings, categories, products] = await Promise.all([
+    getSettings(),
+    getCategories(),
+    getProducts(),
+  ])
+
   return (
-    <main
-      style={{
-        colorScheme: 'light dark',
-        position: 'relative',
-        display: 'flex',
-        minHeight: '100vh',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'light-dark(#fff, #000)',
-        color: 'light-dark(#000, #fff)',
-      }}
-    >
-      <svg
-        aria-hidden="true"
-        style={{ width: 80, height: 80 }}
-        width={80}
-        height={80}
-        fill="none"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-        stroke="currentColor"
-        strokeWidth="0.5"
-      >
-        <path
-          d="M14.2 14.2H17V6.9375C17 4.76288 15.2371 3 13.0625 3H5.8V5.8M14.2 14.2V7.79063L7.79062 14.2H14.2ZM14.2 14.2V17H6.9375C4.76288 17 3 15.2371 3 13.0625V5.8H5.8M5.8 5.8V12.2313L12.2313 5.8H5.8Z"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <p
-        style={{
-          position: 'absolute',
-          left: '50%',
-          top: 'calc(50% + 56px)',
-          transform: 'translateX(-50%)',
-          whiteSpace: 'nowrap',
-          fontSize: '14px',
-          fontWeight: 500,
-          color: 'light-dark(#71717a, #a1a1aa)',
-        }}
-      >
-        Your v0 generation will show here.
-      </p>
-    </main>
+    <CartProvider>
+      <div className="flex min-h-dvh flex-col">
+        <SiteHeader settings={settings} />
+        <main className="flex-1">
+          <Hero settings={settings} />
+          <Announcement settings={settings} />
+          <Catalog categories={categories} products={products} />
+          <PaymentSection settings={settings} />
+          <ContactSection settings={settings} />
+        </main>
+        <SiteFooter settings={settings} />
+        <FunPanel />
+        <CartSheet settings={settings} />
+      </div>
+    </CartProvider>
   )
 }

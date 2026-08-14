@@ -376,14 +376,18 @@ function SuccessView({
 
       <div className="mt-4 flex flex-col gap-2">
         {waNumber && (
-          <Button asChild variant="outline" className="w-full bg-transparent">
-            <a
-              href={`https://wa.me/${waNumber}?text=${waText}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Send order on WhatsApp
-            </a>
+          <Button
+            render={
+              <a
+                href={`https://wa.me/${waNumber}?text=${waText}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+            }
+            variant="outline"
+            className="w-full bg-transparent"
+          >
+            Send order on WhatsApp
           </Button>
         )}
         <Button className="w-full" onClick={onClose}>

@@ -35,11 +35,16 @@ export function Hero({ settings }: { settings: ShopSettings }) {
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <a href="#shop">Browse the counter</a>
+            <Button render={<a href="#shop" />} size="lg">
+              Browse the counter
             </Button>
-            <Button asChild size="lg" variant="outline" className="bg-card/60 backdrop-blur">
-              <a href="#pay">See payment details</a>
+            <Button
+              render={<a href="#pay" />}
+              size="lg"
+              variant="outline"
+              className="bg-card/60 backdrop-blur"
+            >
+              See payment details
             </Button>
           </div>
 
