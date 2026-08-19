@@ -72,6 +72,7 @@ export const shopSettings = pgTable("shop_settings", {
   tillNumber: text("till_number"),
   paybillNumber: text("paybill_number"),
   paybillAccount: text("paybill_account"),
+  lipaNaPochi: text("lipa_na_pochi"),
   heroImage: text("hero_image"),
   logoImage: text("logo_image"),
   locationAreas: text("location_areas"),
@@ -153,5 +154,34 @@ export const messages = pgTable("messages", {
   body: text("body").notNull(),
   isRead: boolean("is_read").notNull().default(false),
   adminReply: text("admin_reply"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
+export const partnerShops = pgTable("partner_shops", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  tagline: text("tagline"),
+  location: text("location"),
+  phone: text("phone"),
+  whatsapp: text("whatsapp"),
+  tillNumber: text("till_number"),
+  paybillNumber: text("paybill_number"),
+  paybillAccount: text("paybill_account"),
+  domain: text("domain"),
+  logoImage: text("logo_image"),
+  heroImage: text("hero_image"),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
+export const adminMessages = pgTable("admin_messages", {
+  id: serial("id").primaryKey(),
+  senderName: text("sender_name").notNull(),
+  senderShop: text("sender_shop").notNull(),
+  recipientShop: text("recipient_shop").notNull(),
+  body: text("body").notNull(),
+  isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })

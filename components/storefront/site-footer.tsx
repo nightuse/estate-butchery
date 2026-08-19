@@ -43,6 +43,9 @@ export function SiteFooter({ settings }: { settings: ShopSettings }) {
             <Link href="#pay" className="w-fit hover:text-foreground">
               Payment details
             </Link>
+            <Link href="/partners" className="w-fit hover:text-foreground">
+              Partner butcheries
+            </Link>
             <Link href="#contact" className="w-fit hover:text-foreground">
               Contact us
             </Link>

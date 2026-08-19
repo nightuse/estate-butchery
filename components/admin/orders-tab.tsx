@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Check, Loader2, Phone, Package } from "lucide-react"
+import { Check, Loader as Loader2, Phone, Package, Network } from "lucide-react"
 import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,13 +24,13 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { formatKES, formatDateTime, statusLabel } from "@/lib/format"
-import { confirmPayment, updateOrderStatus, getOrderItems } from "@/app/actions/admin"
-import type { Order, OrderItem } from "@/lib/types"
+import { confirmPayment, updateOrderStatus, getOrderItems, redirectOrderToPartner } from "@/app/actions/admin"
+import type { Order, OrderItem, PartnerShop } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 const STATUSES = ["pending", "preparing", "ready", "completed", "cancelled"]
 
-export function OrdersTab({ orders }: { orders: Order[] }) {
+export function OrdersTab({ orders, partners }: { orders: Order[]; partners: PartnerShop[] }) {
   const [filter, setFilter] = useState<"all" | "pending" | "pickup" | "unpaid">("all")
 
   const filtered = useMemo(() => {
@@ -77,7 +77,7 @@ export function OrdersTab({ orders }: { orders: Order[] }) {
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((o) => (
-            <OrderRow key={o.id} order={o} />
+            <OrderRow key={o.id} order={o} partners={partners} />
           ))}
         </div>
       )}
@@ -85,11 +85,12 @@ export function OrdersTab({ orders }: { orders: Order[] }) {
   )
 }
 
-function OrderRow({ order }: { order: Order }) {
+function OrderRow({ order, partners }: { order: Order; partners: PartnerShop[] }) {
   const [busy, setBusy] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
   const [itemsOpen, setItemsOpen] = useState(false)
   const [items, setItems] = useState<OrderItem[] | null>(null)
+  const [redirectOpen, setRedirectOpen] = useState(false)
 
   async function changeStatus(status: string) {
     setBusy(true)
@@ -168,6 +169,11 @@ function OrderRow({ order }: { order: Order }) {
             <Check className="h-3.5 w-3.5" /> Confirm payment
           </Button>
         )}
+        {partners.length > 0 && order.status !== "redirected" && (
+          <Button size="sm" variant="outline" onClick={() => setRedirectOpen(true)} className="gap-1.5">
+            <Network className="h-3.5 w-3.5" /> Redirect to partner
+          </Button>
+        )}
         {busy && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
       </div>
 
@@ -175,6 +181,13 @@ function OrderRow({ order }: { order: Order }) {
         order={order}
         open={payOpen}
         onOpenChange={setPayOpen}
+      />
+
+      <RedirectDialog
+        order={order}
+        partners={partners}
+        open={redirectOpen}
+        onOpenChange={setRedirectOpen}
       />
 
       <Dialog open={itemsOpen} onOpenChange={setItemsOpen}>
@@ -291,6 +304,88 @@ function ConfirmPaymentDialog({
           <Button onClick={submit} disabled={busy} className="gap-1.5">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
             Confirm
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function RedirectDialog({
+  order,
+  partners,
+  open,
+  onOpenChange,
+}: {
+  order: Order
+  partners: PartnerShop[]
+  open: boolean
+  onOpenChange: (v: boolean) => void
+}) {
+  const [partnerId, setPartnerId] = useState("")
+  const [reason, setReason] = useState("")
+  const [busy, setBusy] = useState(false)
+
+  async function submit() {
+    if (!partnerId) {
+      toast.error("Select a partner butchery")
+      return
+    }
+    setBusy(true)
+    const res = await redirectOrderToPartner(order.id, Number(partnerId), reason.trim() || undefined)
+    setBusy(false)
+    if (res.ok) {
+      toast.success("Order redirected to partner")
+      onOpenChange(false)
+    } else {
+      toast.error(res.error || "Failed to redirect")
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Network className="h-4 w-4" /> Redirect order to partner
+          </DialogTitle>
+          <DialogDescription>
+            Send {order.orderCode} ({order.customerName}) to a partner butchery for fulfilment.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-3">
+          <div className="grid gap-2">
+            <Label>Partner butchery</Label>
+            <Select value={partnerId} onValueChange={setPartnerId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a partner..." />
+              </SelectTrigger>
+              <SelectContent>
+                {partners.map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>
+                    {p.name}{p.location ? ` — ${p.location}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="redirect-reason">Reason (optional)</Label>
+            <Input
+              id="redirect-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. Out of stock, customer closer to partner"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={submit} disabled={busy} className="gap-1.5">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Network className="h-4 w-4" />}
+            Redirect order
           </Button>
         </DialogFooter>
       </DialogContent>

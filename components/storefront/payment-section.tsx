@@ -18,7 +18,8 @@ export function PaymentSection({ settings }: { settings: ShopSettings }) {
 
   const hasTill = !!settings.tillNumber
   const hasPaybill = !!settings.paybillNumber
-  if (!hasTill && !hasPaybill) return null
+  const hasPochi = !!settings.lipaNaPochi
+  if (!hasTill && !hasPaybill && !hasPochi) return null
 
   return (
     <section id="pay" className="border-y bg-secondary/40">
@@ -85,6 +86,31 @@ export function PaymentSection({ settings }: { settings: ShopSettings }) {
                   Account: <span className="font-semibold text-foreground">{settings.paybillAccount}</span>
                 </p>
               )}
+            </Card>
+          )}
+
+          {hasPochi && (
+            <Card className="p-6">
+              <p className="font-display text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+                Lipa na Pochi / Send Money
+              </p>
+              <button
+                type="button"
+                onClick={() => copy("Pochi number", settings.lipaNaPochi!)}
+                className="mt-2 flex items-center gap-3"
+              >
+                <span className="font-display text-3xl font-bold tracking-wider text-primary">
+                  {settings.lipaNaPochi}
+                </span>
+                {copied === "Pochi number" ? (
+                  <Check className="h-5 w-5 text-primary" />
+                ) : (
+                  <Copy className="h-5 w-5 text-muted-foreground" />
+                )}
+              </button>
+              <p className="mt-2 text-sm text-muted-foreground">
+                M-Pesa → Send Money → Enter phone number
+              </p>
             </Card>
           )}
         </div>

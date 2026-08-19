@@ -12,14 +12,18 @@ import {
   Settings,
   LogOut,
   ExternalLink,
+  Network,
+  Mail,
 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type {
+  AdminMessage,
   Category,
   Message,
   Order,
+  PartnerShop,
   Product,
   ShopSettings,
   SupplierOrder,
@@ -31,8 +35,10 @@ import { CatalogTab } from "./catalog-tab"
 import { SuppliersTab } from "./suppliers-tab"
 import { MessagesTab } from "./messages-tab"
 import { SettingsTab } from "./settings-tab"
+import { PartnersTab } from "./partners-tab"
+import { ChatTab } from "./chat-tab"
 
-type Tab = "overview" | "orders" | "catalog" | "suppliers" | "messages" | "settings"
+type Tab = "overview" | "orders" | "catalog" | "suppliers" | "messages" | "partners" | "chat" | "settings"
 
 export function AdminDashboard({
   adminName,
@@ -42,6 +48,8 @@ export function AdminDashboard({
   orders,
   suppliers,
   messages,
+  partners,
+  adminMessages,
   stats,
 }: {
   adminName: string
@@ -51,6 +59,8 @@ export function AdminDashboard({
   orders: Order[]
   suppliers: SupplierOrder[]
   messages: Message[]
+  partners: PartnerShop[]
+  adminMessages: AdminMessage[]
   stats: DashboardStats
 }) {
   const router = useRouter()
@@ -62,6 +72,8 @@ export function AdminDashboard({
     { id: "catalog", label: "Catalog", icon: Beef },
     { id: "suppliers", label: "Suppliers", icon: Truck, badge: stats.expectedSupplies },
     { id: "messages", label: "Messages", icon: MessageSquare, badge: stats.unreadMessages },
+    { id: "partners", label: "Partners", icon: Network },
+    { id: "chat", label: "Chat", icon: Mail },
     { id: "settings", label: "Settings", icon: Settings },
   ]
 
@@ -73,7 +85,6 @@ export function AdminDashboard({
 
   return (
     <div className="flex min-h-svh flex-col bg-muted/30 lg:flex-row">
-      {/* Sidebar */}
       <aside className="flex flex-col border-b bg-card lg:w-60 lg:border-b-0 lg:border-r">
         <div className="flex items-center gap-2 border-b px-4 py-4">
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary font-display text-lg font-bold text-primary-foreground">
@@ -139,7 +150,6 @@ export function AdminDashboard({
         </div>
       </aside>
 
-      {/* Main */}
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between gap-3 border-b bg-card px-4 py-3 lg:px-6">
           <div>
@@ -173,10 +183,19 @@ export function AdminDashboard({
           {tab === "overview" && (
             <OverviewTab stats={stats} orders={orders} settings={settings} onNavigate={setTab} />
           )}
-          {tab === "orders" && <OrdersTab orders={orders} />}
+          {tab === "orders" && <OrdersTab orders={orders} partners={partners} />}
           {tab === "catalog" && <CatalogTab categories={categories} products={products} />}
           {tab === "suppliers" && <SuppliersTab suppliers={suppliers} />}
           {tab === "messages" && <MessagesTab messages={messages} settings={settings} />}
+          {tab === "partners" && <PartnersTab partners={partners} />}
+          {tab === "chat" && (
+            <ChatTab
+              adminMessages={adminMessages}
+              partners={partners}
+              settings={settings}
+              adminName={adminName}
+            />
+          )}
           {tab === "settings" && <SettingsTab settings={settings} />}
         </main>
       </div>
