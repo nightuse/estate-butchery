@@ -28,9 +28,6 @@ export function SiteHeader({ settings }: { settings: ShopSettings }) {
           <a href="#shop" className="transition-colors hover:text-primary">
             Shop
           </a>
-          <a href="/partners" className="transition-colors hover:text-primary">
-            Partners
-          </a>
           <a href="#pay" className="transition-colors hover:text-primary">
             Pay
           </a>

@@ -12,8 +12,6 @@ import {
   Settings,
   LogOut,
   ExternalLink,
-  Network,
-  MessagesSquare,
 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
@@ -33,19 +31,8 @@ import { CatalogTab } from "./catalog-tab"
 import { SuppliersTab } from "./suppliers-tab"
 import { MessagesTab } from "./messages-tab"
 import { SettingsTab } from "./settings-tab"
-import { PartnersTab } from "./partners-tab"
-import { ChatTab } from "./chat-tab"
-import type { AdminMessage, PartnerShop } from "@/lib/types"
 
-type Tab =
-  | "overview"
-  | "orders"
-  | "catalog"
-  | "suppliers"
-  | "messages"
-  | "partners"
-  | "chat"
-  | "settings"
+type Tab = "overview" | "orders" | "catalog" | "suppliers" | "messages" | "settings"
 
 export function AdminDashboard({
   adminName,
@@ -55,8 +42,6 @@ export function AdminDashboard({
   orders,
   suppliers,
   messages,
-  partners,
-  adminMessages,
   stats,
 }: {
   adminName: string
@@ -66,8 +51,6 @@ export function AdminDashboard({
   orders: Order[]
   suppliers: SupplierOrder[]
   messages: Message[]
-  partners: PartnerShop[]
-  adminMessages: AdminMessage[]
   stats: DashboardStats
 }) {
   const router = useRouter()
@@ -79,8 +62,6 @@ export function AdminDashboard({
     { id: "catalog", label: "Catalog", icon: Beef },
     { id: "suppliers", label: "Suppliers", icon: Truck, badge: stats.expectedSupplies },
     { id: "messages", label: "Messages", icon: MessageSquare, badge: stats.unreadMessages },
-    { id: "partners", label: "Partners", icon: Network },
-    { id: "chat", label: "Chat", icon: MessagesSquare },
     { id: "settings", label: "Settings", icon: Settings },
   ]
 
@@ -196,15 +177,6 @@ export function AdminDashboard({
           {tab === "catalog" && <CatalogTab categories={categories} products={products} />}
           {tab === "suppliers" && <SuppliersTab suppliers={suppliers} />}
           {tab === "messages" && <MessagesTab messages={messages} settings={settings} />}
-          {tab === "partners" && <PartnersTab partners={partners} />}
-          {tab === "chat" && (
-            <ChatTab
-              adminMessages={adminMessages}
-              partners={partners}
-              settings={settings}
-              adminName={adminName}
-            />
-          )}
           {tab === "settings" && <SettingsTab settings={settings} />}
         </main>
       </div>

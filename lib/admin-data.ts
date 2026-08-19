@@ -1,8 +1,8 @@
 import "server-only"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { adminMessages, messages, orders, partnerShops, supplierOrders } from "@/lib/db/schema"
-import { desc, eq } from "drizzle-orm"
+import { messages, orders, supplierOrders } from "@/lib/db/schema"
+import { desc } from "drizzle-orm"
 import { headers } from "next/headers"
 
 export async function getAdminSession() {
@@ -19,14 +19,6 @@ export async function getSupplierOrders() {
 
 export async function getMessages() {
   return db.select().from(messages).orderBy(desc(messages.createdAt))
-}
-
-export async function getAllPartners() {
-  return db.select().from(partnerShops).orderBy(partnerShops.sortOrder, partnerShops.name)
-}
-
-export async function getAdminMessages() {
-  return db.select().from(adminMessages).orderBy(desc(adminMessages.createdAt))
 }
 
 export type DashboardStats = {

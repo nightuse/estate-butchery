@@ -1,13 +1,12 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Check, Loader as Loader2, Phone, Package, ArrowRightLeft } from "lucide-react"
+import { Check, Loader2, Phone, Package } from "lucide-react"
 import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
@@ -25,13 +24,13 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { formatKES, formatDateTime, statusLabel } from "@/lib/format"
-import { confirmPayment, updateOrderStatus, getOrderItems, redirectOrderToPartner } from "@/app/actions/admin"
-import type { Order, OrderItem, PartnerShop } from "@/lib/types"
+import { confirmPayment, updateOrderStatus, getOrderItems } from "@/app/actions/admin"
+import type { Order, OrderItem } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-const STATUSES = ["pending", "preparing", "ready", "completed", "cancelled", "redirected"]
+const STATUSES = ["pending", "preparing", "ready", "completed", "cancelled"]
 
-export function OrdersTab({ orders, partners }: { orders: Order[]; partners: PartnerShop[] }) {
+export function OrdersTab({ orders }: { orders: Order[] }) {
   const [filter, setFilter] = useState<"all" | "pending" | "pickup" | "unpaid">("all")
 
   const filtered = useMemo(() => {
@@ -78,7 +77,7 @@ export function OrdersTab({ orders, partners }: { orders: Order[]; partners: Par
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((o) => (
-            <OrderRow key={o.id} order={o} partners={partners} />
+            <OrderRow key={o.id} order={o} />
           ))}
         </div>
       )}
@@ -86,12 +85,11 @@ export function OrdersTab({ orders, partners }: { orders: Order[]; partners: Par
   )
 }
 
-function OrderRow({ order, partners }: { order: Order; partners: PartnerShop[] }) {
+function OrderRow({ order }: { order: Order }) {
   const [busy, setBusy] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
   const [itemsOpen, setItemsOpen] = useState(false)
   const [items, setItems] = useState<OrderItem[] | null>(null)
-  const [redirectOpen, setRedirectOpen] = useState(false)
 
   async function changeStatus(status: string) {
     setBusy(true)
@@ -170,11 +168,6 @@ function OrderRow({ order, partners }: { order: Order; partners: PartnerShop[] }
             <Check className="h-3.5 w-3.5" /> Confirm payment
           </Button>
         )}
-        {order.status !== "completed" && order.status !== "cancelled" && partners.length > 0 && (
-          <Button size="sm" variant="outline" onClick={() => setRedirectOpen(true)} className="gap-1.5">
-            <ArrowRightLeft className="h-3.5 w-3.5" /> Redirect to partner
-          </Button>
-        )}
         {busy && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
       </div>
 
@@ -182,13 +175,6 @@ function OrderRow({ order, partners }: { order: Order; partners: PartnerShop[] }
         order={order}
         open={payOpen}
         onOpenChange={setPayOpen}
-      />
-
-      <RedirectDialog
-        order={order}
-        partners={partners}
-        open={redirectOpen}
-        onOpenChange={setRedirectOpen}
       />
 
       <Dialog open={itemsOpen} onOpenChange={setItemsOpen}>
@@ -305,89 +291,6 @@ function ConfirmPaymentDialog({
           <Button onClick={submit} disabled={busy} className="gap-1.5">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
             Confirm
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function RedirectDialog({
-  order,
-  partners,
-  open,
-  onOpenChange,
-}: {
-  order: Order
-  partners: PartnerShop[]
-  open: boolean
-  onOpenChange: (v: boolean) => void
-}) {
-  const [partnerId, setPartnerId] = useState("")
-  const [reason, setReason] = useState("")
-  const [busy, setBusy] = useState(false)
-
-  async function submit() {
-    if (!partnerId) {
-      toast.error("Select a partner butchery")
-      return
-    }
-    setBusy(true)
-    const res = await redirectOrderToPartner(Number(partnerId), order.id, reason.trim() || undefined)
-    setBusy(false)
-    if (res.ok) {
-      toast.success("Order redirected")
-      onOpenChange(false)
-    } else {
-      toast.error(res.error || "Failed to redirect")
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ArrowRightLeft className="h-4 w-4" /> Redirect {order.orderCode}
-          </DialogTitle>
-          <DialogDescription>
-            Send this customer to a partner butchery — e.g. when you&apos;re closed or out of stock.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-3">
-          <div className="grid gap-2">
-            <Label>Partner butchery</Label>
-            <Select value={partnerId} onValueChange={setPartnerId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a partner..." />
-              </SelectTrigger>
-              <SelectContent>
-                {partners.map((p) => (
-                  <SelectItem key={p.id} value={String(p.id)}>
-                    {p.name}{p.location ? ` — ${p.location}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="redirect-reason">Reason (optional)</Label>
-            <Textarea
-              id="redirect-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={2}
-              placeholder="e.g. Out of goat meat — please serve this customer."
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={submit} disabled={busy} className="gap-1.5">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRightLeft className="h-4 w-4" />}
-            Redirect order
           </Button>
         </DialogFooter>
       </DialogContent>
