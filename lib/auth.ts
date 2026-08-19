@@ -24,6 +24,7 @@ const trustedOrigins = [
 export const auth = betterAuth({
   baseURL: getBaseURL(),
   trustedOrigins,
+  secret: process.env.BETTER_AUTH_SECRET || "estate-butchery-dev-secret-change-in-production",
   database: new Pool({ connectionString: process.env.DATABASE_URL }),
   emailAndPassword: {
     enabled: true,

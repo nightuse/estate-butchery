@@ -1,11 +1,12 @@
 import "server-only"
 import { db } from "@/lib/db"
-import { categories, products, shopSettings } from "@/lib/db/schema"
+import { categories, partnerShops, products, shopSettings } from "@/lib/db/schema"
 import { asc, eq } from "drizzle-orm"
 
 export type ShopSettings = typeof shopSettings.$inferSelect
 export type Category = typeof categories.$inferSelect
 export type Product = typeof products.$inferSelect
+export type PartnerShop = typeof partnerShops.$inferSelect
 
 const DEFAULT_SETTINGS: ShopSettings = {
   id: 1,
@@ -38,4 +39,12 @@ export async function getCategories(): Promise<Category[]> {
 
 export async function getProducts(): Promise<Product[]> {
   return db.select().from(products).orderBy(asc(products.sortOrder), asc(products.name))
+}
+
+export async function getActivePartners(): Promise<PartnerShop[]> {
+  return db
+    .select()
+    .from(partnerShops)
+    .where(eq(partnerShops.isActive, true))
+    .orderBy(asc(partnerShops.sortOrder), asc(partnerShops.name))
 }

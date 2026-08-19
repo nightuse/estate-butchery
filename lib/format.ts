@@ -11,6 +11,7 @@ export function statusLabel(status: string) {
     ready: "Ready for pickup",
     completed: "Completed",
     cancelled: "Cancelled",
+    redirected: "Redirected",
   }
   return map[status] ?? status
 }

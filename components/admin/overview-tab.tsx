@@ -1,14 +1,6 @@
 "use client"
 
-import {
-  TrendingUp,
-  ShoppingBag,
-  Clock,
-  MessageSquare,
-  Truck,
-  Wallet,
-  CheckCircle2,
-} from "lucide-react"
+import { TrendingUp, ShoppingBag, Clock, MessageSquare, Truck, Wallet, CircleCheck as CheckCircle2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { formatKES } from "@/lib/format"
 import { statusLabel } from "@/lib/format"
@@ -16,7 +8,15 @@ import type { DashboardStats } from "@/lib/admin-data"
 import type { Order, ShopSettings } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-type Tab = "overview" | "orders" | "catalog" | "suppliers" | "messages" | "settings"
+type Tab =
+  | "overview"
+  | "orders"
+  | "catalog"
+  | "suppliers"
+  | "messages"
+  | "partners"
+  | "chat"
+  | "settings"
 
 export function OverviewTab({
   stats,

@@ -3,10 +3,12 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import {
+  adminMessages,
   categories,
   messages,
   orderItems,
   orders,
+  partnerShops,
   products,
   shopSettings,
   supplierOrders,
@@ -227,6 +229,130 @@ export async function markMessageRead(id: number, isRead: boolean) {
 export async function deleteMessage(id: number) {
   await requireAdmin()
   await db.delete(messages).where(eq(messages.id, id))
+  refresh()
+  return { ok: true as const }
+}
+
+// ---------------- Password ----------------
+export async function changePassword(newPassword: string) {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user) return { ok: false as const, error: "Unauthorized" }
+  if (newPassword.length < 8) return { ok: false as const, error: "Password must be at least 8 characters." }
+
+  await auth.api.changePassword({
+    headers: await headers(),
+    body: { newPassword, currentPassword: newPassword },
+  })
+  return { ok: true as const }
+}
+
+// ---------------- Partner Shops ----------------
+type PartnerInput = {
+  name: string
+  tagline?: string | null
+  location?: string | null
+  phone?: string | null
+  whatsapp?: string | null
+  tillNumber?: string | null
+  paybillNumber?: string | null
+  paybillAccount?: string | null
+  domain?: string | null
+  isActive: boolean
+}
+
+function slugify(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+}
+
+export async function createPartner(data: PartnerInput) {
+  await requireAdmin()
+  const slug = slugify(data.name) + "-" + Math.floor(Math.random() * 1000)
+  await db.insert(partnerShops).values({
+    slug,
+    name: data.name,
+    tagline: data.tagline || null,
+    location: data.location || null,
+    phone: data.phone || null,
+    whatsapp: data.whatsapp || null,
+    tillNumber: data.tillNumber || null,
+    paybillNumber: data.paybillNumber || null,
+    paybillAccount: data.paybillAccount || null,
+    domain: data.domain || null,
+    isActive: data.isActive,
+    sortOrder: 0,
+  })
+  refresh()
+  return { ok: true as const }
+}
+
+export async function updatePartner(id: number, data: PartnerInput) {
+  await requireAdmin()
+  await db
+    .update(partnerShops)
+    .set({
+      name: data.name,
+      tagline: data.tagline || null,
+      location: data.location || null,
+      phone: data.phone || null,
+      whatsapp: data.whatsapp || null,
+      tillNumber: data.tillNumber || null,
+      paybillNumber: data.paybillNumber || null,
+      paybillAccount: data.paybillAccount || null,
+      domain: data.domain || null,
+      isActive: data.isActive,
+    })
+    .where(eq(partnerShops.id, id))
+  refresh()
+  return { ok: true as const }
+}
+
+export async function deletePartner(id: number) {
+  await requireAdmin()
+  await db.delete(partnerShops).where(eq(partnerShops.id, id))
+  refresh()
+  return { ok: true as const }
+}
+
+// ---------------- Order Redirect ----------------
+export async function redirectOrderToPartner(orderId: number, partnerId: number, reason?: string) {
+  await requireAdmin()
+  const [partner] = await db.select().from(partnerShops).where(eq(partnerShops.id, partnerId)).limit(1)
+  if (!partner) return { ok: false as const, error: "Partner not found." }
+
+  const note = reason ? `Redirected to ${partner.name}: ${reason}` : `Redirected to ${partner.name}`
+  await db
+    .update(orders)
+    .set({ status: "redirected", notes: note })
+    .where(eq(orders.id, orderId))
+  refresh()
+  return { ok: true as const }
+}
+
+// ---------------- Admin Chat ----------------
+export async function sendAdminMessage(data: {
+  senderName: string
+  senderShop: string
+  recipientShop: string
+  body: string
+}) {
+  await requireAdmin()
+  const body = data.body?.trim()
+  if (!body || body.length < 1) return { ok: false as const, error: "Message is empty." }
+  if (!data.recipientShop) return { ok: false as const, error: "Select a recipient shop." }
+
+  await db.insert(adminMessages).values({
+    senderName: data.senderName,
+    senderShop: data.senderShop,
+    recipientShop: data.recipientShop,
+    body,
+  })
+  refresh()
+  return { ok: true as const }
+}
+
+export async function markAdminMessageRead(id: number, isRead: boolean) {
+  await requireAdmin()
+  await db.update(adminMessages).set({ isRead }).where(eq(adminMessages.id, id))
   refresh()
   return { ok: true as const }
 }
